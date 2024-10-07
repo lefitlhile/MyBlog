@@ -1,0 +1,44 @@
+/* Post.css */
+
+.post {
+    background-color: #ffffff; /* White background for the post */
+    border: 1px solid #e1e1e1; /* Light border */
+    border-radius: 8px; /* Rounded corners */
+    padding: 20px; /* Inner padding */
+    margin: 20px 0; /* Margin between posts */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    margin: 20px;
+}
+
+.post h2 {
+    font-size: 24px; /* Title font size */
+    margin-bottom: 10px; /* Space below title */
+    color: #333; /* Dark text color */
+}
+
+.post p {
+    font-size: 16px; /* Paragraph font size */
+    line-height: 1.6; /* Line height for better readability */
+    color: #555; /* Medium text color */
+}
+
+.post .author {
+    font-size: 14px; /* Smaller font for author info */
+    color: #999; /* Light gray color for author text */
+    margin-top: 15px; /* Space above author info */
+}
+
+.post .date {
+    font-size: 14px; /* Smaller font for date */
+    color: #999; /* Light gray color for date text */
+    margin-top: 5px; /* Space above date */
+}
+
+.post a {
+    color: #007bff; /* Link color */
+    text-decoration: none; /* Remove underline from links */
+}
+
+.post a:hover {
+    text-decoration: underline; /* Underline on hover */
+}

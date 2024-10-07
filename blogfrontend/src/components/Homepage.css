@@ -1,0 +1,104 @@
+/* src/components/Homepage.css */
+.homepage {
+    background-color: rgb(222, 236, 218);
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    color: rgb(21, 20, 20); /* Adjust text color for better contrast */
+  }
+  
+  h1, h2 {
+    color: #333;
+  }
+  
+  .social-links {
+    padding: 0;
+  }
+  
+  .social-links li {
+    margin: 5px 0;
+  }
+  
+  .social-links a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 1.2em; /* Increase size for better visibility */
+  }
+  
+  .social-links a i {
+    margin-right: 8px; /* Spacing between icon and text */
+  }
+  
+  .social-links a:hover {
+    text-decoration: underline;
+  }
+  
+  footer {
+    margin-bottom: auto; /* Pushes footer to the bottom */
+    width: 100%;
+    background-color: #f8f9fa; /* Matches the navbar */
+    padding: 20px 0;
+    text-align: center; /* Center the text */
+  }
+  
+  
+  .container {
+    flex: 1; /* Allows the container to grow and fill space */
+  }
+  
+  h1, h2 {
+    color: #333;
+  }
+  
+  .social-links {
+    padding: 0;
+  }
+  
+  .social-links li {
+    margin: 5px 0;
+  }
+  
+  .social-links a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 1.2em; /* Increase size for better visibility */
+  }
+  
+  .social-links a i {
+    margin-right: 8px; /* Spacing between icon and text */
+  }
+  
+  .social-links a:hover {
+    text-decoration: underline;
+  }
+  
+  .btn btn-danger{
+    color: #8caf8d;
+  }
+  .submit-button {
+    background-color: #60bc91; /* Bootstrap primary color */
+    color: rgb(255, 255, 255);
+    padding: 12px 15px; /* Slightly larger button padding */
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .welcome-box {
+    border: 2px solid #007bff; /* Bootstrap primary color */
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    background-color: #f8f9fa; /* Light background color */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  }
+  
+  .welcome-box h2 {
+    margin-bottom: 10px; /* Space below the heading */
+  }
+  
+  .welcome-box p {
+    margin: 0; /* Reset margin for the paragraph */
+  }
+  
