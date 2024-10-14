@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs').promises; // Use promises for fs
 const path = require('path');
+const db = require('./database.cjs');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +45,16 @@ app.post('/api/posts', (req, res) => {
         } catch (err) {
             res.status(500).send('Error processing request');
         }
+    });
+});
+
+// Update a post
+app.put('/api/posts/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, content } = req.body;
+    db.query('UPDATE posts SET title = ?, content = ? WHERE id = ?', [title, content, id], (err, results) => {
+        if (err) return res.status(500).json(err);
+        res.json({ id, title, content });
     });
 });
 
