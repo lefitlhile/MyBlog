@@ -101,4 +101,12 @@
   .welcome-box p {
     margin: 0; /* Reset margin for the paragraph */
   }
+  .button-group {
+    margin-top: 10px; /* Adjust spacing as needed */
+  }
+  
+  .submit-button,
+  .cancel-button {
+    margin-right: 10px; /* Space between buttons */
+  }
   

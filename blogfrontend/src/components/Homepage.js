@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Homepage.css';
 import NewPost from './NewPost'; 
-import '../Footer'
+import '../Footer';
 
 const Homepage = () => {
   const [posts, setPosts] = useState([]); 
   const [error, setError] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
+  const [editForm, setEditForm] = useState({ title: '', content: '', author: '' });
 
   const fetchPosts = async () => {
     try {
@@ -26,7 +28,7 @@ const Homepage = () => {
   }, []);
 
   const handlePostAdded = (newPost) => {
-    setPosts((prevPosts) => [newPost, ...prevPosts]); // Add new post to the top of the list
+    setPosts((prevPosts) => [newPost, ...prevPosts]);
   };
 
   const handleDeletePost = async (postId) => {
@@ -37,8 +39,39 @@ const Homepage = () => {
       if (!response.ok) {
         throw new Error('Failed to delete the post');
       }
-      // Update state to remove the deleted post
       setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const handleEditPost = async (postId) => {
+    const postToEdit = posts.find(post => post.id === postId);
+    if (postToEdit) {
+      setEditingPost(postId);
+      setEditForm({ title: postToEdit.title, content: postToEdit.content, author: postToEdit.author });
+    }
+  };
+
+  const handleUpdatePost = async (e) => {
+    e.preventDefault();
+    const { title, content, author } = editForm;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/posts/${editingPost}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content, author }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update the post');
+      }
+      const updatedPost = await response.json();
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => (post.id === editingPost ? updatedPost : post))
+      );
+      setEditingPost(null);
+      setEditForm({ title: '', content: '', author: '' });
     } catch (error) {
       setError(error.message);
     }
@@ -77,18 +110,54 @@ const Homepage = () => {
 
       <NewPost onPostAdded={handlePostAdded} /> 
 
-      <div className="posts" id= "post">
+      {editingPost && (
+        <form onSubmit={handleUpdatePost} className="edit-post-form">
+          <h2>Edit Post</h2>
+          <input
+            type="text"
+            value={editForm.title}
+            onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+            placeholder="Title"
+            required
+          />
+          <textarea
+            value={editForm.content}
+            onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+            placeholder="Content"
+            required
+          />
+          <input
+            type="text"
+            value={editForm.author}
+            onChange={(e) => setEditForm({ ...editForm, author: e.target.value })}
+            placeholder="Author"
+            required
+          />
+          <div className="button-group">
+            <button type="submit" className="submit-button">Update Post</button>
+            
+            <button type="button" onClick={() => setEditingPost(null)} className="cancel-button">Cancel</button>
+          </div>
+        </form>
+      )}
+
+      <div className="posts" id="post">
         {posts.map((post) => (
           <div key={post.id} className="post">
             <h2>{post.title}</h2>
             <p>{post.content}</p>
             <small>{`By ${post.author} on ${post.date}`}</small>
-            <button 
-              className="submit-button" 
-              onClick={() => handleDeletePost(post.id)}
-            >
-              Delete
-            </button>
+            <div className="button-group">
+              <button className="submit-button" onClick={() => handleEditPost(post.id)}>
+                Edit
+              </button>
+              <button 
+                className="submit-button" 
+                onClick={() => handleDeletePost(post.id)}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
