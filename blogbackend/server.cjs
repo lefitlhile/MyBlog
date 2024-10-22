@@ -28,7 +28,7 @@ app.get('/api/posts', async (req, res) => {
 
 // Create a new post
 app.post('/api/posts', (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, } = req.body;
 
     if (!title || !content) {
         return res.status(400).send('Title and content are required');
