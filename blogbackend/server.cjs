@@ -1,80 +1,45 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const fs = require('fs').promises; // Use promises for fs
-const path = require('path');
 const db = require('./database.cjs');
-
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use(express.static(path.join(__dirname, 'client/build')));
-const postsFilePath = path.join(__dirname, 'posts.json');
-let queue = Promise.resolve(); // Initialize a resolved promise
-
-// Get all posts
-app.get('/api/posts', async (req, res) => {
-    try {
-        const data = await fs.readFile(postsFilePath, 'utf8');
-        res.send(JSON.parse(data));
-    } catch (err) {
-        res.status(500).send('Error reading posts');
-    }
-});
-
-// Create a new post
-app.post('/api/posts', (req, res) => {
-    const { title, content, } = req.body;
-
-    if (!title || !content) {
-        return res.status(400).send('Title and content are required');
-    }
-
-    queue = queue.then(async () => {
-        try {
-            const data = await fs.readFile(postsFilePath, 'utf8');
-            const posts = JSON.parse(data);
-            const newPost = { id: Date.now(), title, content };
-            posts.push(newPost);
-            await fs.writeFile(postsFilePath, JSON.stringify(posts));
-            res.status(201).send(newPost);
-        } catch (err) {
-            res.status(500).send('Error processing request');
-        }
+app.get('/api/posts', (req, res) => {
+    db.query('SELECT * FROM posts', (err, results) => {
+        if (err) return res.status(500).send('Error retrieving posts');
+        res.send(results);
     });
 });
 
-// Update a post
+app.post('/api/posts', (req, res) => {
+    const { title, content, author_id } = req.body;
+    db.query('INSERT INTO posts (title, content, author_id) VALUES (?, ?, ?)', [title, content, author_id], (err, results) => {
+        if (err) return res.status(500).send('Error adding post');
+        res.status(201).send({ id: results.insertId, title, content, author_id, created_at: new Date() });
+    });
+});
+
 app.put('/api/posts/:id', (req, res) => {
     const { id } = req.params;
-    const { title, content } = req.body;
-    db.query('UPDATE posts SET title = ?, content = ? WHERE id = ?', [title, content, id], (err, results) => {
-        if (err) return res.status(500).json(err);
-        res.json({ id, title, content, });
+    const { title, content, author_id } = req.body;
+    db.query('UPDATE posts SET title = ?, content = ?, author_id = ? WHERE id = ?', [title, content, author_id, id], (err, results) => {
+        if (err) return res.status(500).send('Error updating post');
+        res.send({ id, title, content, author_id });
     });
 });
 
-// Delete a post
 app.delete('/api/posts/:id', (req, res) => {
-    const postId = parseInt(req.params.id);
-
-    queue = queue.then(async () => {
-        try {
-            const data = await fs.readFile(postsFilePath, 'utf8');
-            const posts = JSON.parse(data);
-            const filteredPosts = posts.filter(post => post.id !== postId);
-            await fs.writeFile(postsFilePath, JSON.stringify(filteredPosts));
-            res.status(204).send();
-        } catch (err) {
-            res.status(500).send('Error processing request');
-        }
+    const { id } = req.params;
+    db.query('DELETE FROM posts WHERE id = ?', [id], (err, results) => {
+        if (err) return res.status(500).send('Error deleting post');
+        res.status(204).send();
     });
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });

@@ -1,81 +1,79 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Homepage.css';
-import NewPost from './NewPost'; 
+import NewPost from './NewPost';
 import '../Footer';
 
 const Homepage = () => {
-  const [posts, setPosts] = useState([]); 
-  const [error, setError] = useState(null);
-  const [editingPost, setEditingPost] = useState(null);
-  const [editForm, setEditForm] = useState({ title: '', content: '', author: '' });
+    const [posts, setPosts] = useState([]);
+    const [error, setError] = useState(null);
+    const [editingPost, setEditingPost] = useState(null);
+    const [editForm, setEditForm] = useState({ title: '', content: '', author_id: '' });
 
-  const fetchPosts = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/posts');
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      setPosts(data); 
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+    const fetchPosts = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/posts');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            setPosts(data);
+        } catch (error) {
+            setError(error.message);
+        }
+    };
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+    useEffect(() => {
+        fetchPosts();
+    }, []);
 
-  const handlePostAdded = (newPost) => {
-    setPosts((prevPosts) => [newPost, ...prevPosts]);
-  };
+    const handlePostAdded = (newPost) => {
+        setPosts((prevPosts) => [newPost, ...prevPosts]);
+    };
 
-  const handleDeletePost = async (postId) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/posts/${postId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete the post');
-      }
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+    const handleDeletePost = async (postId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete the post');
+            }
+            setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+        } catch (error) {
+            setError(error.message);
+        }
+    };
 
-  const handleEditPost = async (postId) => {
-    const postToEdit = posts.find(post => post.id === postId);
-    if (postToEdit) {
-      setEditingPost(postId);
-      setEditForm({ title: postToEdit.title, content: postToEdit.content, author: postToEdit.author });
-    }
-  };
+    const handleEditPost = async (postId) => {
+        const postToEdit = posts.find(post => post.id === postId);
+        if (postToEdit) {
+            setEditingPost(postId);
+            setEditForm({ title: postToEdit.title, content: postToEdit.content, author_id: postToEdit.author_id });
+        }
+    };
 
-  const handleUpdatePost = async (e) => {
-    e.preventDefault();
-    const { title, content, author } = editForm;
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/posts/${editingPost}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content, author }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update the post');
-      }
-      const updatedPost = await response.json();
-      setPosts((prevPosts) =>
-        prevPosts.map((post) => (post.id === editingPost ? updatedPost : post))
-      );
-      setEditingPost(null);
-      setEditForm({ title: '', content: '', author: '' });
-    } catch (error) {
-      setError(error.message);
-    }
-  };
+    const handleUpdatePost = async (e) => {
+        e.preventDefault();
+        const { title, content, author_id } = editForm;
+        try {
+            const response = await fetch(`http://localhost:5000/api/posts/${editingPost}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content, author_id }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update the post');
+            }
+            const updatedPost = await response.json();
+            setPosts((prevPosts) =>
+                prevPosts.map((post) => (post.id === editingPost ? updatedPost : post))
+            );
+            setEditingPost(null);
+            setEditForm({ title: '', content: '', author_id: '' });
+        } catch (error) {
+        }
+      };
 
   return (
     <div className="homepage">
