@@ -4,6 +4,7 @@ import './Homepage.css';
 import NewPost from './NewPost';
 import '../Footer';
 
+
 const Homepage = () => {
     const [posts, setPosts] = useState([]);
     const [error, setError] = useState(null);
