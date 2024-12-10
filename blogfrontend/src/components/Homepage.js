@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+<<<<<<< HEAD
 import './Homepage.css';  // Make sure this file contains the .button-spacing class
 import NewPost from './NewPost'; 
 import { Modal, Button, Form } from 'react-bootstrap'; // Import React Bootstrap components
@@ -149,6 +150,83 @@ const Homepage = () => {
       setError(error.message);
     }
   };
+=======
+import './Homepage.css';
+import NewPost from './NewPost';
+import '../Footer';
+
+
+const Homepage = () => {
+    const [posts, setPosts] = useState([]);
+    const [error, setError] = useState(null);
+    const [editingPost, setEditingPost] = useState(null);
+    const [editForm, setEditForm] = useState({ title: '', content: '', author_id: '' });
+
+    const fetchPosts = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/api/posts');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            setPosts(data);
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    useEffect(() => {
+        fetchPosts();
+    }, []);
+
+    const handlePostAdded = (newPost) => {
+        setPosts((prevPosts) => [newPost, ...prevPosts]);
+    };
+
+    const handleDeletePost = async (postId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete the post');
+            }
+            setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    const handleEditPost = async (postId) => {
+        const postToEdit = posts.find(post => post.id === postId);
+        if (postToEdit) {
+            setEditingPost(postId);
+            setEditForm({ title: postToEdit.title, content: postToEdit.content, author_id: postToEdit.author_id });
+        }
+    };
+
+    const handleUpdatePost = async (e) => {
+        e.preventDefault();
+        const { title, content, author_id } = editForm;
+        try {
+            const response = await fetch(`http://localhost:5000/api/posts/${editingPost}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content, author_id }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update the post');
+            }
+            const updatedPost = await response.json();
+            setPosts((prevPosts) =>
+                prevPosts.map((post) => (post.id === editingPost ? updatedPost : post))
+            );
+            setEditingPost(null);
+            setEditForm({ title: '', content: '', author_id: '' });
+        } catch (error) {
+        }
+      };
+>>>>>>> 2d02ba0dfcee05594c3764addd95b4241fd61a35
 
   return (
     <div className="homepage">
@@ -186,6 +264,7 @@ const Homepage = () => {
       <NewPost onPostAdded={handlePostAdded} /> 
 
       {editingPost && (
+<<<<<<< HEAD
         <div className="edit-post-form mb-4">
           <h3>Edit Post</h3>
           <input
@@ -261,6 +340,55 @@ const Homepage = () => {
                 </div>
               </div>
             ))}
+=======
+        <form onSubmit={handleUpdatePost} className="edit-post-form">
+          <h2>Edit Post</h2>
+          <input
+            type="text"
+            value={editForm.title}
+            onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+            placeholder="Title"
+            required
+          />
+          <textarea
+            value={editForm.content}
+            onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+            placeholder="Content"
+            required
+          />
+          <input
+            type="text"
+            value={editForm.author}
+            onChange={(e) => setEditForm({ ...editForm, author: e.target.value })}
+            placeholder="Author"
+            required
+          />
+          <div className="button-group">
+            <button type="submit" className="submit-button">Update Post</button>
+            
+            <button type="button" onClick={() => setEditingPost(null)} className="cancel-button">Cancel</button>
+          </div>
+        </form>
+      )}
+
+      <div className="posts" id="post">
+        {posts.map((post) => (
+          <div key={post.id} className="post">
+            <h2>{post.title}</h2>
+            <p>{post.content}</p>
+            <small>{`By ${post.author} on ${post.date}`}</small>
+            <div className="button-group">
+              <button className="submit-button" onClick={() => handleEditPost(post.id)}>
+                Edit
+              </button>
+              <button 
+                className="submit-button" 
+                onClick={() => handleDeletePost(post.id)}
+              >
+                Delete
+              </button>
+            </div>
+>>>>>>> 2d02ba0dfcee05594c3764addd95b4241fd61a35
           </div>
         </div>
       </div>
