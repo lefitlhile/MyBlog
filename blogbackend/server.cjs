@@ -1,86 +1,149 @@
-// server.cjs
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const fs = require('fs').promises; // Use promises for file system operations
-const path = require('path');
-
+const mysql = require('mysql2');
+const path = require('path'); 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// MySQL connection setup
+const db = mysql.createConnection({
+    host: 'localhost',      
+    user: 'root',            
+    password: 'Jesus@1989',            
+    database: 'personal_blog' 
+});
+
 // Middleware
-app.use(cors());  // Enable CORS for all requests
-app.use(bodyParser.json());  // Parse JSON bodies
+app.use(cors());
+app.use(bodyParser.json());
 
-// Serve the React app (for production deployment)
-app.use(express.static(path.join(__dirname, 'client/build')));
-
-// File path to store blog posts
-const postsFilePath = path.join(__dirname, 'posts.json');
-
-// Initialize a queue to handle sequential file operations
-let queue = Promise.resolve(); 
+// Connect to MySQL
+db.connect(err => {
+    if (err) {
+        console.error('Error connecting to MySQL:', err);
+        return;
+    }
+    console.log('Connected to MySQL');
+});
 
 // Get all posts
-app.get('/api/posts', async (req, res) => {
-    try {
-        const data = await fs.readFile(postsFilePath, 'utf8');
-        res.status(200).json(JSON.parse(data));  // Respond with JSON
-    } catch (err) {
-        console.error('Error reading posts:', err);
-        res.status(500).send('Error reading posts');
-    }
+app.get('/api/posts', (req, res) => {
+    db.query('SELECT * FROM posts', (err, results) => {
+        if (err) {
+            console.error('Error reading posts:', err);
+            return res.status(500).send('Error reading posts');
+        }
+        res.status(200).json(results);
+    });
 });
 
 // Create a new post
 app.post('/api/posts', (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, author } = req.body;
 
-    // Check if title and content are provided
     if (!title || !content) {
         return res.status(400).send('Title and content are required');
     }
 
-    queue = queue.then(async () => {
-        try {
-            const data = await fs.readFile(postsFilePath, 'utf8');
-            const posts = JSON.parse(data);
-
-            // Create a new post with a unique ID
-            const newPost = { id: Date.now(), title, content };
-            posts.push(newPost);
-
-            // Write the updated posts array back to the file
-            await fs.writeFile(postsFilePath, JSON.stringify(posts, null, 2));  // Pretty print the JSON
-            res.status(201).json(newPost);  // Respond with the new post
-        } catch (err) {
-            console.error('Error processing request:', err);
-            res.status(500).send('Error processing request');
+    const query = 'INSERT INTO posts (title, content, author) VALUES (?, ?, ?)';
+    db.query(query, [title, content, author], (err, result) => {
+        if (err) {
+            console.error('Error creating post:', err);
+            return res.status(500).send('Error creating post');
         }
+        const newPost = { id: result.insertId, title, content, author };
+        res.status(201).json(newPost);
+    });
+});
+
+// Edit a post by ID
+app.put('/api/posts/:id', (req, res) => {
+    const postId = req.params.id;
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+        return res.status(400).send('Title and content cannot be empty!');
+    }
+
+    const query = 'UPDATE posts SET title = ?, content = ? WHERE id = ?';
+    db.query(query, [title, content, postId], (err, result) => {
+        if (err) {
+            console.error('Error editing post:', err);
+            return res.status(500).send('Error editing post');
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send('Post not found');
+        }
+
+        res.status(200).json({ id: postId, title, content });
     });
 });
 
 // Delete a post by ID
 app.delete('/api/posts/:id', (req, res) => {
-    const postId = parseInt(req.params.id);
+    const postId = req.params.id;
 
-    queue = queue.then(async () => {
-        try {
-            const data = await fs.readFile(postsFilePath, 'utf8');
-            const posts = JSON.parse(data);
-
-            // Filter out the post with the given ID
-            const filteredPosts = posts.filter(post => post.id !== postId);
-
-            // Write the updated posts array back to the file
-            await fs.writeFile(postsFilePath, JSON.stringify(filteredPosts, null, 2));  // Pretty print the JSON
-            res.status(204).send();  // Successfully deleted
-        } catch (err) {
-            console.error('Error processing request:', err);
-            res.status(500).send('Error processing request');
+    
+    db.query('DELETE FROM comments WHERE post_id = ?', [postId], (err) => {
+        if (err) {
+            console.error('Error deleting comments:', err);
+            return res.status(500).send('Error deleting comments');
         }
+
+       
+        db.query('DELETE FROM posts WHERE id = ?', [postId], (err, result) => {
+            if (err) {
+                console.error('Error deleting post:', err);
+                return res.status(500).send('Error deleting post');
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).send('Post not found');
+            }
+
+            res.status(204).send();
+        });
     });
 });
+
+// Fetch comments for a specific post
+app.get('/api/posts/:id/comments', (req, res) => {
+    const postId = req.params.id;
+
+    db.query('SELECT * FROM comments WHERE post_id = ?', [postId], (err, results) => {
+        if (err) {
+            console.error('Error fetching comments:', err);
+            return res.status(500).send('Error fetching comments');
+        }
+        res.status(200).json(results);
+    });
+});
+
+// Add a comment to a specific post
+app.post('/api/posts/:id/comments', (req, res) => {
+    const postId = req.params.id;
+    const { comment } = req.body;
+
+    if (!comment) {
+        return res.status(400).send('Comment cannot be empty');
+    }
+
+    const query = 'INSERT INTO comments (post_id, comment) VALUES (?, ?)';
+    db.query(query, [postId, comment], (err, result) => {
+        if (err) {
+            console.error('Error adding comment:', err);
+            return res.status(500).send('Error adding comment');
+        }
+
+        const newComment = { id: result.insertId, post_id: postId, comment };
+        res.status(201).json(newComment);
+    });
+});
+
+// Serve the React app (for production deployment)
+app.use(express.static(path.join(__dirname, 'client/build'))); // <-- This line is now fixed
 
 // Catch-all route for serving React app in production
 app.get('*', (req, res) => {

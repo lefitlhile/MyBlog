@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './Homepage.css';
+import './Homepage.css';  
 import NewPost from './NewPost'; 
-import { Modal, Button, Form } from 'react-bootstrap'; // Import React Bootstrap components
-import '../Footer';
+import { Modal, Button, Form } from 'react-bootstrap'; 
 
 const Homepage = () => {
   const [posts, setPosts] = useState([]); 
   const [error, setError] = useState(null);
-  const [editingPost, setEditingPost] = useState(null); // Track post being edited
+  const [editingPost, setEditingPost] = useState(null); 
   const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
-  const [isSaving, setIsSaving] = useState(false); // New state to track save operation
-  const [comments, setComments] = useState({}); // State to store comments for each post
-  const [showModal, setShowModal] = useState(false); // State to control modal visibility
-  const [selectedPostId, setSelectedPostId] = useState(null); // Store the selected post ID for adding comments
-  const [newComment, setNewComment] = useState(''); // New comment state
+  const [isSaving, setIsSaving] = useState(false); 
+  const [comments, setComments] = useState({}); 
+  const [showModal, setShowModal] = useState(false); 
+  const [selectedPostId, setSelectedPostId] = useState(null); 
+  const [newComment, setNewComment] = useState(''); 
 
   // Fetch posts from the backend
   const fetchPosts = async () => {
@@ -25,19 +24,19 @@ const Homepage = () => {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
-      setPosts(data); // Set posts to the fetched data
+      setPosts(data); 
     } catch (error) {
       setError(error.message);
     }
   };
 
   useEffect(() => {
-    fetchPosts(); // Fetch posts when the component mounts
+    fetchPosts(); 
   }, []);
 
   // Add a new post to the list
   const handlePostAdded = (newPost) => {
-    setPosts((prevPosts) => [newPost, ...prevPosts]); // Add new post to the top of the list
+    setPosts((prevPosts) => [newPost, ...prevPosts]); 
   };
 
   // Delete a post
@@ -69,7 +68,7 @@ const Homepage = () => {
       return;
     }
 
-    setIsSaving(true); // Set saving to true
+    setIsSaving(true); 
 
     try {
       const response = await fetch(`http://localhost:5000/api/posts/${editingPost.id}`, {
@@ -83,19 +82,27 @@ const Homepage = () => {
       }
 
       const updatedPost = await response.json();
+
+      // Update the posts state with the updated post
       setPosts((prevPosts) =>
-        prevPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post))
+        prevPosts.map((post) =>
+          post.id === updatedPost.id ? { ...post, title: updatedPost.title, content: updatedPost.content } : post
+        )
       );
-      setEditingPost(null); // Close the edit form
+
+      setEditingPost(null); 
+      setEditedTitle('');
+      setEditedContent('');
     } catch (error) {
+      console.error('Error saving post:', error); 
       setError(error.message);
     } finally {
-      setIsSaving(false); // Reset saving state after the request completes
+      setIsSaving(false); 
     }
   };
 
   // Fetch comments for a specific post
-  const handleViewComments = async (postId) => {
+  const fetchComments = async (postId) => {
     try {
       const response = await fetch(`http://localhost:5000/api/posts/${postId}`);
       if (!response.ok) {
@@ -104,7 +111,7 @@ const Homepage = () => {
       const post = await response.json();
       setComments((prevComments) => ({
         ...prevComments,
-        [postId]: post.comments || [], // Store comments for the specific post
+        [postId]: post.comments || [], 
       }));
     } catch (error) {
       setError(error.message);
@@ -143,8 +150,8 @@ const Homepage = () => {
         [selectedPostId]: [...(prevComments[selectedPostId] || []), comment], // Add new comment to post's comments
       }));
       
-      setNewComment(''); // Reset the new comment input field
-      setShowModal(false); // Close the modal
+      setNewComment(''); 
+      setShowModal(false); 
     } catch (error) {
       setError(error.message);
     }
@@ -154,9 +161,6 @@ const Homepage = () => {
     <div className="homepage">
       <nav className="navbar navbar-expand-lg navbar-light fixed-top" style={{ backgroundColor: 'rgba(179, 218, 193, 0.9)' }}>
         <a className="navbar-brand" href="/">My Personal Blog</a>
-        <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span className="navbar-toggler-icon"></span>
-        </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav">
             <li className="nav-item active">
@@ -173,7 +177,7 @@ const Homepage = () => {
       </nav>
 
       {error && <div className="alert alert-danger">{error}</div>}
-      
+
       <div className="welcome-section text-center mb-5" style={{ paddingTop: '100px' }}>
         <h1>Welcome to My Personal Blog</h1>
         <p>
@@ -203,7 +207,7 @@ const Homepage = () => {
           <button 
             className="btn btn-primary mt-2"
             onClick={handleSaveEdit}
-            disabled={isSaving} // Disable button when saving
+            disabled={isSaving}
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -224,26 +228,26 @@ const Homepage = () => {
                   </footer>
                   <div className="post-actions mt-3 d-flex justify-content-end">
                     <button 
-                      className="btn btn-warning btn-sm mr-3"  // Use mr-1 for smaller space
+                      className="btn btn-warning btn-sm button-spacing" 
                       onClick={() => handleEditPost(post)}
                     >
                       Edit
                     </button>
                     <button 
-                      className="btn btn-danger btn-sm mr-1"  // Use mr-1 for smaller space
+                      className="btn btn-danger btn-sm button-spacing"
                       onClick={() => handleDeletePost(post.id)}
                     >
                       Delete
                     </button>
                     <button 
-                      className="btn btn-info btn-sm mr-1"  // Use mr-1 for smaller space
-                      onClick={() => handleViewComments(post.id)}
+                      className="btn btn-info btn-sm button-spacing"
+                      onClick={() => fetchComments(post.id)}
                     >
                       View Comments
                     </button>
                     <button 
-                      className="btn btn-secondary btn-sm mr-1"
-                      onClick={() => handleOpenModal(post.id)} // Open modal to add a comment
+                      className="btn btn-secondary btn-sm button-spacing"
+                      onClick={() => handleOpenModal(post.id)}
                     >
                       Add Comment
                     </button>
@@ -265,7 +269,7 @@ const Homepage = () => {
         </div>
       </div>
 
-      {/* Modal for adding comment */}
+      {/* Modal for adding comments */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Add Comment</Modal.Title>
@@ -273,12 +277,12 @@ const Homepage = () => {
         <Modal.Body>
           <Form onSubmit={handleAddComment}>
             <Form.Group controlId="comment">
-              <Form.Label>Your Comment</Form.Label>
-              <Form.Control 
-                type="text" 
+              <Form.Control
+                type="text"
+                placeholder="Write your comment"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Enter your comment"
+                required
               />
             </Form.Group>
             <Button variant="primary" type="submit">

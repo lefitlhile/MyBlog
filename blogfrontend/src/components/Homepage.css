@@ -74,6 +74,15 @@ button:hover {
 .button-spacing:last-child {
   margin-right: 0;
 }
+/* Custom class to add spacing between buttons */
+.button-spacing {
+  margin-right: 8px;  /* Adjust this value for the desired space between buttons */
+}
+
+/* Optional: Remove the margin from the last button */
+.button-spacing:last-child {
+  margin-right: 0;
+}
 
 .homepage {
     background-color: rgb(222, 236, 218);
